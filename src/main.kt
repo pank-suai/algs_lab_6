@@ -1,4 +1,5 @@
 import kotlin.math.max
+import kotlin.random.Random
 
 data class Node(
     var value: Int,
@@ -83,26 +84,10 @@ class AvlTree {
         return node // Нет необходимости балансировки
     }
 
-    fun findParentNodeByValue(value: Int): Node? {
-        if (root == null || value == root?.value) return null
-        var current = root!!
-        while ((current.left?.value != value && current.right?.value != value) && !current.hasChild) {
-            if (value > current.value) {
-                current = current.right!!
-            } else {
-                current = current.left!!
-            }
-        }
-        return current
-    }
-
-    fun findParentNode(node: Node): Node? {
-        return findParentNodeByValue(node.value)
-    }
-
     fun delete(value: Int) {
         root = delete(root, value)
     }
+
 
     /**
      * Рекурсивная функция удаления
@@ -115,13 +100,13 @@ class AvlTree {
         if (value > node.value) {
             node.right = delete(node.right, value)
             updatedNode = node
-        }else if (value < node.value){
+        } else if (value < node.value) {
             node.left = delete(node.left, value)
             updatedNode = node
-        }else{
-            if (node.left == null || node.right == null){
+        } else {
+            if (node.left == null || node.right == null) {
                 updatedNode = node.left ?: node.right
-            }else{
+            } else {
                 val minNode = minNode(node.right!!)
                 node.value = minNode.value
                 node.right = delete(node.right, minNode.value)
@@ -131,12 +116,34 @@ class AvlTree {
         return balance(updatedNode ?: return null)
     }
 
+    data class FindResult(val hasItem: Boolean = false, val path: String = "", val steps: Int = 1) {
+        fun copyAddPathAndStep(path: String): FindResult {
+            return copy(path = path + this.path, steps = steps + 1)
+        }
+    }
+
+    fun find(value: Int, node: Node? = root): FindResult {
+        if (node == null) return FindResult()
+        if (value > node.value) return find(value, node.right).copyAddPathAndStep("r")
+        if (value < node.value) return find(value, node.left).copyAddPathAndStep("l")
+        return FindResult(true)
+    }
+
     fun minNode(node: Node): Node {
         var current = node
         while (current.left != null) {
             current = current.left!!
         }
         return current
+    }
+
+    /**
+     * Прямой обход дерева
+     */
+    fun traversalPreOrder(node: Node? = root): Array<Int> {
+        if (node == null) return emptyArray()
+        val valArr = arrayOf(node.value)
+        return valArr + traversalPreOrder(node.left) + traversalPreOrder(node.right)
     }
 
 
@@ -156,7 +163,7 @@ fun main() {
         println("1. Добавить элемент")
         println("2. Удалить элемент")
         println("3. Найти элемент")
-        println("4. Вывести дерево")
+        println("4. Заполнить дерево случайными элементами")
         println("5. Обойти дерево прямым обходом")
         println("6. Выполнить задание")
         println("7. Выйти")
@@ -164,24 +171,60 @@ fun main() {
         when (variant) {
             1 -> tree.interactiveAdd()
             2 -> tree.interactiveDelete()
+            3 -> tree.interactiveFind()
+            4 -> tree.interactiveFillRandomValues()
+            5 -> println(tree.traversalPreOrder().joinToString(", "))
+            6 -> tree.doTask()
+            7 -> break
         }
     }
 }
 
-private fun AvlTree.interactiveDelete() {
+private fun AvlTree.doTask() {
+    TODO("Not yet implemented")
+}
+
+private fun AvlTree.interactiveFillRandomValues() {
     var num: Int? = null
     while (num == null) {
-        println("Введите целое число, которое вы хотите удалить")
+        println("Введите количество элементов, которые вы хотите сгенерировать")
         num = readln().toIntOrNull() ?: continue
+        if (num < 0) {
+            println("Число должно быть положительным")
+            num = null
+        }
     }
+    repeat(num) {
+        this.insert(Random.nextInt(-2 * num, 2 * num))
+    }
+}
+
+private fun AvlTree.interactiveFind() {
+    val num: Int = inputInt("Введите целое число, которое вы хотите найти")
+    val findResult = find(num)
+    println("Элемент " + if (findResult.hasItem) "" else "не" + " найден")
+    println("Количество шагов: ${findResult.steps}")
+    println("Путь до элемента: ${findResult.path}")
+
+}
+
+private fun AvlTree.interactiveDelete() {
+    val num: Int = inputInt("Введите целое число, которое вы хотите удалить")
+
     this.delete(num)
 }
 
 private fun AvlTree.interactiveAdd() {
+    val num: Int = inputInt("Введите целое число, которое вы хотите добавить")
+
+    this.insert(num)
+}
+
+fun inputInt(q: String): Int {
     var num: Int? = null
     while (num == null) {
-        println("Введите целое число")
+        println(q)
         num = readln().toIntOrNull() ?: continue
     }
-    this.insert(num)
+    return num
 }
