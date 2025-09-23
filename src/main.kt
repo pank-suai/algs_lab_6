@@ -1,7 +1,7 @@
 import kotlin.math.max
 
 data class Node(
-    val value: Int,
+    var value: Int,
     var left: Node? = null,
     var right: Node? = null,
 
@@ -9,18 +9,17 @@ data class Node(
     val height: Int get() = max(left?.height ?: 0, right?.height ?: 0) + 1
     val balance: Int get() = (right?.height ?: 0) - (left?.height ?: 0)
 
-    val hasChild: Boolean = right != null || left != null
+    val hasChild: Boolean get() = right != null || left != null
 
-
-    fun toString(prefix: String): String =
+    fun toString(prefix: String, perValuePrefix: String): String =
         buildString {
-            appendLine("$prefix + $value")
-            left?.let { this.append(it.toString(prefix + "\t")) }
-            right?.let { this.append(it.toString(prefix + "\t")) }
+            appendLine("$prefix $perValuePrefix $value")
+            left?.let { this.append(it.toString("$prefix\t", "l")) }
+            right?.let { this.append(it.toString("$prefix\t", "r")) }
         }
 
 
-    override fun toString(): String = toString("")
+    override fun toString(): String = toString("", perValuePrefix = "")
 
 
 }
@@ -84,13 +83,13 @@ class AvlTree {
         return node // Нет необходимости балансировки
     }
 
-    fun findParentNodeByValue(value: Int): Node?{
-        if (root == null || value == root?.value ) return null
+    fun findParentNodeByValue(value: Int): Node? {
+        if (root == null || value == root?.value) return null
         var current = root!!
-        while ( (current.left?.value != value && current.right?.value != value) && !current.hasChild ){
-            if (value > current.value){
+        while ((current.left?.value != value && current.right?.value != value) && !current.hasChild) {
+            if (value > current.value) {
                 current = current.right!!
-            }else{
+            } else {
                 current = current.left!!
             }
         }
@@ -101,8 +100,43 @@ class AvlTree {
         return findParentNodeByValue(node.value)
     }
 
-    fun delete(node: Node){
-        if (node == root)
+    fun delete(value: Int) {
+        root = delete(root, value)
+    }
+
+    /**
+     * Рекурсивная функция удаления
+     */
+    private fun delete(node: Node?, value: Int): Node? {
+        if (node == null) {
+            return null
+        }
+        val updatedNode: Node?
+        if (value > node.value) {
+            node.right = delete(node.right, value)
+            updatedNode = node
+        }else if (value < node.value){
+            node.left = delete(node.left, value)
+            updatedNode = node
+        }else{
+            if (node.left == null || node.right == null){
+                updatedNode = node.left ?: node.right
+            }else{
+                val minNode = minNode(node.right!!)
+                node.value = minNode.value
+                node.right = delete(node.right, minNode.value)
+                updatedNode = node
+            }
+        }
+        return balance(updatedNode ?: return null)
+    }
+
+    fun minNode(node: Node): Node {
+        var current = node
+        while (current.left != null) {
+            current = current.left!!
+        }
+        return current
     }
 
 
@@ -129,8 +163,18 @@ fun main() {
         val variant = readln().toIntOrNull() ?: continue
         when (variant) {
             1 -> tree.interactiveAdd()
+            2 -> tree.interactiveDelete()
         }
     }
+}
+
+private fun AvlTree.interactiveDelete() {
+    var num: Int? = null
+    while (num == null) {
+        println("Введите целое число, которое вы хотите удалить")
+        num = readln().toIntOrNull() ?: continue
+    }
+    this.delete(num)
 }
 
 private fun AvlTree.interactiveAdd() {
