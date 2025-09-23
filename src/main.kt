@@ -9,6 +9,8 @@ data class Node(
     val height: Int get() = max(left?.height ?: 0, right?.height ?: 0) + 1
     val balance: Int get() = (right?.height ?: 0) - (left?.height ?: 0)
 
+    val hasChild: Boolean = right != null || left != null
+
 
     fun toString(prefix: String): String =
         buildString {
@@ -35,6 +37,7 @@ class AvlTree {
     }
 
     private fun insert(root: Node? = null, value: Int): Node {
+        // Если корня нет
         if (root == null) {
             return Node(value)
         }
@@ -42,10 +45,10 @@ class AvlTree {
         // Если число больше, то вправо
         if (root.value < value) {
             root.right = insert(root.right, value)
-        } else if (root.value > value) {
+        } else if (root.value > value) { //  меньше влево
             root.left = insert(root.left, value)
         } else {
-            return root
+            return root // Только уникальные значения
         }
         return balance(root)
     }
@@ -79,6 +82,27 @@ class AvlTree {
             return rotateRight(node)!!
         }
         return node // Нет необходимости балансировки
+    }
+
+    fun findParentNodeByValue(value: Int): Node?{
+        if (root == null || value == root?.value ) return null
+        var current = root!!
+        while ( (current.left?.value != value && current.right?.value != value) && !current.hasChild ){
+            if (value > current.value){
+                current = current.right!!
+            }else{
+                current = current.left!!
+            }
+        }
+        return current
+    }
+
+    fun findParentNode(node: Node): Node? {
+        return findParentNodeByValue(node.value)
+    }
+
+    fun delete(node: Node){
+        if (node == root)
     }
 
 
