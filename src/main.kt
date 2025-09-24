@@ -11,6 +11,7 @@ data class Node(
     val balance: Int get() = (right?.height ?: 0) - (left?.height ?: 0)
 
     val hasChild: Boolean get() = right != null || left != null
+    val isLeaf: Boolean get() = right == null && left == null
 
     fun toString(prefix: String, perValuePrefix: String): String =
         buildString {
@@ -138,6 +139,33 @@ class AvlTree {
     }
 
     /**
+     * Лист -- node'a которая не имеет детей
+     */
+    data class Leaf(val value: Int, var height: Int = 0)
+
+    /**
+     * Добавляем высоту
+     */
+    fun Array<Leaf>.step(): Array<Leaf> {
+        repeat(size) { i ->
+            this[i].height++
+        }
+        return this
+    }
+
+
+    /**
+     * Получение листьев с помощью прямого обхода
+     */
+    fun leafs(node: Node? = root): Array<Leaf> {
+        if (node == null) return emptyArray()
+        if (node.isLeaf) {
+            return arrayOf(Leaf(node.value))
+        }
+        return leafs(node.left).step() + leafs(node.right).step()
+    }
+
+    /**
      * Прямой обход дерева
      */
     fun traversalPreOrder(node: Node? = root): Array<Int> {
@@ -181,7 +209,28 @@ fun main() {
 }
 
 private fun AvlTree.doTask() {
-    TODO("Not yet implemented")
+    if (root == null) return
+    do {
+        val leafs = this.leafs()
+        var maxHLeaf = leafs[0]
+        var minHLeaf = leafs[0]
+
+        for (i in 1..leafs.lastIndex){
+            if (leafs[i].height > maxHLeaf.height){
+                maxHLeaf = leafs[i]
+            } else if (leafs[i].height < minHLeaf.height){
+                minHLeaf = leafs[i]
+            }
+        }
+        println("Самый верхний лист: $minHLeaf")
+        println("Самый нижний лист: $maxHLeaf")
+
+
+        if (maxHLeaf.height != minHLeaf.height)
+            delete(maxHLeaf.value)
+    } while (maxHLeaf.height != minHLeaf.height )
+
+
 }
 
 private fun AvlTree.interactiveFillRandomValues() {
