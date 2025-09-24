@@ -2,8 +2,18 @@
 
 
 #let init(body) = {
-  titlepage(authors: ("В.Д. Панков",), city: "Санкт-Петербург", department: "Кафедра № ", documentName: "ОТЧЁТ ПО ЛАБОРАТОРНОЙ РАБОТЕ", education: "ГУАП", group: "М412", teachers: (), position: "")
-  
+  titlepage(
+    authors: ("В.Д. Панков",),
+    city: "Санкт-Петербург",
+    department: "Кафедра № 43",
+    documentName: "ОТЧЁТ ПО ЛАБОРАТОРНОЙ РАБОТЕ №6",
+    education: "ГУАП",
+    group: "М412",
+    teachers: ("М.А. Мурашова",),
+    position: "старший преподаватель",
+    title: ["АВЛ - ДЕРЕВЬЯ ПОИСКА"],
+    object: "Алгоритмы и структуры данных",
+  )
   set text(
     font: "Times New Roman",
     size: 14pt,
